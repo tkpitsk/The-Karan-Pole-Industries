@@ -1,19 +1,18 @@
-import FloatingNavbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/home/HeroSection";
-import Footer from "@/components/layout/Footer";
+import AboutSection from "@/components/home/AboutSection";
+import LocationSection from "@/components/home/LocationSection";
+import WhyKPISection from "@/components/home/WhyKPISection";
 
 export default function HomePage() {
   return (
-    <>
-      <FloatingNavbar />
-      <main>
-        <HeroSection />
-        {/* AboutSection */}
-        {/* ProductsSection */}
-        {/* WhyKPISection */}
-        {/* CTASection */}
-      </main>
-      <Footer />
-    </>
+    <main>
+      <HeroSection />
+      <AboutSection />
+      <WhyKPISection />
+      <LocationSection />
+      {/* ProductsSection */}
+      {/* WhyKPISection */}
+      {/* CTASection */}
+    </main>
   );
 }
