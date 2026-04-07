@@ -6,7 +6,7 @@ import ProductsSection from "@/components/home/ProductsSection";
 
 export default function HomePage() {
   return (
-    <main>
+    <main className="bg-muted">
       <HeroSection />
       <AboutSection />
       {/* <ProductsSection /> */}

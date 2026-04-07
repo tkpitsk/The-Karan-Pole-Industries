@@ -2,7 +2,7 @@ import { ShieldCheck, Factory, Truck, Hammer } from "lucide-react";
 
 export default function WhyKPISection() {
   return (
-    <section id="why-kpi" className="py-20 md:py-28">
+    <section id="why-kpi" className="py-20 md:py-28 bg-surface">
       <div className="mx-auto container px-4">
 
         {/* Header */}
