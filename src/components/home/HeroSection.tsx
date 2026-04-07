@@ -44,7 +44,7 @@ export default function HeroSection() {
   return (
     <section
       className="
-        relative m-3 overflow-hidden rounded-2xl bg-red-500
+        relative m-3 overflow-hidden rounded-2xl
         min-h-[72vh] sm:min-h-[78vh] lg:min-h-[84vh]
         sm:m-4 sm:rounded-3xl
       "
