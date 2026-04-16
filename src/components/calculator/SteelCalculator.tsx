@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { 
-  Square, 
-  Circle, 
-  Menu, 
-  Layers, 
+import React, { useState } from "react";
+import {
+  Square,
+  Circle,
+  Menu,
+  Layers,
   RectangleHorizontal,
   Triangle,
   Type,
-  Info 
+  Info
 } from "lucide-react";
 import { calculateSteelWeight, SteelProfileType, Dimensions } from "@/utils/calculatorUtils";
 
@@ -24,17 +24,51 @@ const TABS: { id: SteelProfileType; label: string; icon: React.ReactNode; desc: 
   { id: "beam", label: "Beams", icon: <Type size={18} />, desc: "I-beams and H-beams (IPN, IPE, HEA)." },
 ];
 
+const convertLenToM = (val: number, unit: string) => {
+  if (unit === 'ft') return val * 0.3048;
+  if (unit === 'in') return val * 0.0254;
+  if (unit === 'cm') return val / 100;
+  if (unit === 'mm') return val / 1000;
+  return val;
+};
+
+const convertDimToMM = (val: number, unit: string) => {
+  if (unit === 'in') return val * 25.4;
+  if (unit === 'cm') return val * 10;
+  if (unit === 'm') return val * 1000;
+  return val;
+};
+
 export default function SteelCalculator() {
   const [activeTab, setActiveTab] = useState<SteelProfileType>("sq-rect-pipe");
   const [dimensions, setDimensions] = useState<Dimensions>({ length: 1 });
   const [quantity, setQuantity] = useState<number>(1);
-  const [weight, setWeight] = useState<number>(0);
 
-  // Recalculate anytime inputs change
-  useEffect(() => {
-    const w = calculateSteelWeight(activeTab, dimensions, quantity);
-    setWeight(w);
-  }, [activeTab, dimensions, quantity]);
+  const [lenUnit, setLenUnit] = useState<"m" | "mm" | "cm" | "ft" | "in">("m");
+  const [dimUnit, setDimUnit] = useState<"mm" | "cm" | "m" | "in">("mm");
+  const [weightUnit, setWeightUnit] = useState<"kg" | "lbs">("kg");
+
+  const convertedDims = { ...dimensions };
+
+  if (convertedDims.length) convertedDims.length = convertLenToM(convertedDims.length, lenUnit);
+  if (convertedDims.plateWidthMeters !== undefined) {
+    const wMM = convertDimToMM(convertedDims.plateWidthMeters, lenUnit);
+    convertedDims.plateWidthMeters = wMM / 1000;
+  }
+
+  const dimKeys: (keyof Dimensions)[] = ['width', 'height', 'thickness', 'diameter', 'webThickness', 'flangeThickness'];
+  dimKeys.forEach(k => {
+    if (convertedDims[k] !== undefined) {
+      convertedDims[k] = convertDimToMM(convertedDims[k] as number, dimUnit);
+    }
+  });
+
+  const baseWeightKg = calculateSteelWeight(activeTab, convertedDims, quantity);
+  const finalWeight = weightUnit === "kg" ? baseWeightKg : baseWeightKg * 2.20462;
+
+  const getWeightUnit = () => weightUnit;
+  const getLargeWeightUnit = () => weightUnit === "kg" ? "MT" : "Short Tons";
+  const largeWeightVal = weightUnit === "kg" ? finalWeight / 1000 : finalWeight / 2000;
 
   const handleTabChange = (tabId: SteelProfileType) => {
     setActiveTab(tabId);
@@ -57,8 +91,8 @@ export default function SteelCalculator() {
         {/* Universal Length Input */}
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-text-primary flex items-center justify-between">
-            Length (L) 
-            <span className="text-xs text-text-muted">meters</span>
+            Length (L)
+            <span className="text-xs text-text-muted">{lenUnit}</span>
           </label>
           <input
             type="number"
@@ -76,7 +110,7 @@ export default function SteelCalculator() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex items-center justify-between">
-                Width (W) <span className="text-xs text-text-muted">meters</span>
+                Width (W) <span className="text-xs text-text-muted">{lenUnit}</span>
               </label>
               <input
                 type="number"
@@ -90,7 +124,7 @@ export default function SteelCalculator() {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex items-center justify-between">
-                Thickness (t) <span className="text-xs text-text-muted">mm</span>
+                Thickness (t) <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -110,7 +144,7 @@ export default function SteelCalculator() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Outer Diameter (D) <span className="text-xs text-text-muted">mm</span>
+                Outer Diameter (D) <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -124,7 +158,7 @@ export default function SteelCalculator() {
             {activeTab === "round-pipe" && (
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-text-primary flex justify-between">
-                  Thickness (t) <span className="text-xs text-text-muted">mm</span>
+                  Thickness (t) <span className="text-xs text-text-muted">{dimUnit}</span>
                 </label>
                 <input
                   type="number"
@@ -145,7 +179,7 @@ export default function SteelCalculator() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Width (A) <span className="text-xs text-text-muted">mm</span>
+                Width (A) <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -158,7 +192,7 @@ export default function SteelCalculator() {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Height (B) <span className="text-xs text-text-muted">mm</span>
+                Height (B) <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -172,7 +206,7 @@ export default function SteelCalculator() {
             {activeTab === "sq-rect-pipe" && (
               <div className="space-y-1.5 col-span-2">
                 <label className="text-sm font-medium text-text-primary flex justify-between">
-                  Thickness (t) <span className="text-xs text-text-muted">mm</span>
+                  Thickness (t) <span className="text-xs text-text-muted">{dimUnit}</span>
                 </label>
                 <input
                   type="number"
@@ -186,20 +220,20 @@ export default function SteelCalculator() {
               </div>
             )}
             {activeTab === "square-flat-bar" && (
-               <div className="space-y-1.5 col-span-2">
-               <label className="text-sm font-medium text-text-primary flex justify-between">
-                 Thickness (Base height if flat) <span className="text-xs text-text-muted">mm</span>
-               </label>
-               <input
-                 type="number"
-                 min="0"
-                 step="0.1"
-                 value={dimensions.thickness || ""}
-                 onChange={(e) => handleDimChange("thickness", e.target.value)}
-                 className="h-11 w-full rounded-xl border border-border bg-white px-4 text-sm outline-none focus:border-brand-primary"
-                 placeholder="e.g., 5"
-               />
-             </div>
+              <div className="space-y-1.5 col-span-2">
+                <label className="text-sm font-medium text-text-primary flex justify-between">
+                  Thickness (Base height if flat) <span className="text-xs text-text-muted">{dimUnit}</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={dimensions.thickness || ""}
+                  onChange={(e) => handleDimChange("thickness", e.target.value)}
+                  className="h-11 w-full rounded-xl border border-border bg-white px-4 text-sm outline-none focus:border-brand-primary"
+                  placeholder="e.g., 5"
+                />
+              </div>
             )}
           </div>
         )}
@@ -209,7 +243,7 @@ export default function SteelCalculator() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Leg A <span className="text-xs text-text-muted">mm</span>
+                Leg A <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -221,7 +255,7 @@ export default function SteelCalculator() {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Leg B <span className="text-xs text-text-muted">mm</span>
+                Leg B <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -234,7 +268,7 @@ export default function SteelCalculator() {
             </div>
             <div className="space-y-1.5 col-span-2">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Thickness (t) <span className="text-xs text-text-muted">mm</span>
+                Thickness (t) <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -253,7 +287,7 @@ export default function SteelCalculator() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Height (h) <span className="text-xs text-text-muted">mm</span>
+                Height (h) <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -265,7 +299,7 @@ export default function SteelCalculator() {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Flange Width (b) <span className="text-xs text-text-muted">mm</span>
+                Flange Width (b) <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -277,7 +311,7 @@ export default function SteelCalculator() {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Flange Thickness (tf) <span className="text-xs text-text-muted">mm</span>
+                Flange Thickness (tf) <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -290,7 +324,7 @@ export default function SteelCalculator() {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-primary flex justify-between">
-                Web Thickness (tw) <span className="text-xs text-text-muted">mm</span>
+                Web Thickness (tw) <span className="text-xs text-text-muted">{dimUnit}</span>
               </label>
               <input
                 type="number"
@@ -328,129 +362,174 @@ export default function SteelCalculator() {
 
     if (activeTab === "sq-rect-pipe") {
       visual = (
-         <div className="w-32 h-32 border-8 border-text-primary rounded-md flex items-center justify-center relative">
-            <span className="absolute -left-6 text-xs font-bold text-text-muted">B</span>
-            <span className="absolute -bottom-6 text-xs font-bold text-text-muted">A</span>
-            <div className="absolute top-0 right-0 w-4 h-full border-r-4 border-dashed border-red-400 opacity-50"></div>
-            <span className="absolute top-4 right-1 text-[10px] text-red-500 font-bold">t</span>
-         </div>
+        <div className="w-32 h-32 border-8 border-text-primary rounded-md flex items-center justify-center relative">
+          <span className="absolute -left-6 text-xs font-bold text-text-muted">B</span>
+          <span className="absolute -bottom-6 text-xs font-bold text-text-muted">A</span>
+          <div className="absolute top-0 right-0 w-4 h-full border-r-4 border-dashed border-red-400 opacity-50"></div>
+          <span className="absolute top-4 right-1 text-[10px] text-red-500 font-bold">t</span>
+        </div>
       );
     } else if (activeTab === "round-pipe") {
       visual = (
         <div className="w-32 h-32 border-8 border-text-primary rounded-full flex items-center justify-center relative">
-           <div className="absolute w-full h-px border-t border-dashed border-text-muted"></div>
-           <span className="absolute -left-6 text-xs font-bold text-text-muted">D</span>
-           <span className="absolute top-2 right-4 text-[10px] text-red-500 font-bold">t</span>
+          <div className="absolute w-full h-px border-t border-dashed border-text-muted"></div>
+          <span className="absolute -left-6 text-xs font-bold text-text-muted">D</span>
+          <span className="absolute top-2 right-4 text-[10px] text-red-500 font-bold">t</span>
         </div>
       );
     } else if (activeTab === "plate") {
       visual = (
         <div className="w-40 h-24 bg-text-primary flex items-center justify-center relative skew-x-12 transform shadow-lg rounded-sm">
-           <span className="absolute -bottom-6 text-xs font-bold text-text-muted">Length</span>
-           <span className="absolute -left-6 text-xs font-bold text-text-muted">Width</span>
+          <span className="absolute -bottom-6 text-xs font-bold text-text-muted">Length</span>
+          <span className="absolute -left-6 text-xs font-bold text-text-muted">Width</span>
         </div>
       );
     } else if (activeTab === "round-bar") {
       visual = (
         <div className="w-32 h-32 bg-text-primary rounded-full flex items-center justify-center relative">
-           <div className="absolute w-full h-px border-t border-white/50"></div>
-           <span className="absolute -left-6 text-xs font-bold text-text-muted">D</span>
+          <div className="absolute w-full h-px border-t border-white/50"></div>
+          <span className="absolute -left-6 text-xs font-bold text-text-muted">D</span>
         </div>
       );
     } else if (activeTab === "square-flat-bar") {
       visual = (
         <div className="w-32 h-20 bg-text-primary rounded-sm flex items-center justify-center relative">
-           <span className="absolute -bottom-6 text-xs font-bold text-text-muted">Width</span>
-           <span className="absolute -left-12 text-xs font-bold text-text-muted">Thickness</span>
+          <span className="absolute -bottom-6 text-xs font-bold text-text-muted">Width</span>
+          <span className="absolute -left-12 text-xs font-bold text-text-muted">Thickness</span>
         </div>
       );
     } else if (activeTab === "angle") {
       visual = (
         <div className="w-24 h-24 relative">
-            <div className="w-full h-4 bg-text-primary absolute bottom-0 left-0"></div>
-            <div className="h-full w-4 bg-text-primary absolute bottom-0 left-0"></div>
-            <span className="absolute -left-10 top-10 text-xs font-bold text-text-muted">Leg B</span>
-            <span className="absolute bottom-6 left-10 text-xs font-bold text-text-muted">Leg A</span>
+          <div className="w-full h-4 bg-text-primary absolute bottom-0 left-0"></div>
+          <div className="h-full w-4 bg-text-primary absolute bottom-0 left-0"></div>
+          <span className="absolute -left-10 top-10 text-xs font-bold text-text-muted">Leg B</span>
+          <span className="absolute bottom-6 left-10 text-xs font-bold text-text-muted">Leg A</span>
         </div>
       );
     } else if (activeTab === "channel") {
       visual = (
         <div className="w-24 h-32 relative">
-            <div className="h-full w-4 bg-text-primary absolute top-0 left-0"></div>
-            <div className="w-full h-4 bg-text-primary absolute top-0 left-0"></div>
-            <div className="w-full h-4 bg-text-primary absolute bottom-0 left-0"></div>
-            <span className="absolute -left-8 top-14 text-xs font-bold text-text-muted">h</span>
-            <span className="absolute -bottom-6 left-8 text-xs font-bold text-text-muted">b</span>
+          <div className="h-full w-4 bg-text-primary absolute top-0 left-0"></div>
+          <div className="w-full h-4 bg-text-primary absolute top-0 left-0"></div>
+          <div className="w-full h-4 bg-text-primary absolute bottom-0 left-0"></div>
+          <span className="absolute -left-8 top-14 text-xs font-bold text-text-muted">h</span>
+          <span className="absolute -bottom-6 left-8 text-xs font-bold text-text-muted">b</span>
         </div>
       );
     } else if (activeTab === "beam") {
       visual = (
         <div className="w-24 h-32 relative flex justify-center">
-            <div className="h-full w-4 bg-text-primary"></div>
-            <div className="w-full h-4 bg-text-primary absolute top-0 left-0"></div>
-            <div className="w-full h-4 bg-text-primary absolute bottom-0 left-0"></div>
-            <span className="absolute -left-8 top-14 text-xs font-bold text-text-muted">h</span>
-            <span className="absolute -bottom-6 left-10 text-xs font-bold text-text-muted">b</span>
+          <div className="h-full w-4 bg-text-primary"></div>
+          <div className="w-full h-4 bg-text-primary absolute top-0 left-0"></div>
+          <div className="w-full h-4 bg-text-primary absolute bottom-0 left-0"></div>
+          <span className="absolute -left-8 top-14 text-xs font-bold text-text-muted">h</span>
+          <span className="absolute -bottom-6 left-10 text-xs font-bold text-text-muted">b</span>
         </div>
       );
     }
 
     return (
       <div className="w-full h-48 bg-muted/30 rounded-2xl border border-border flex items-center justify-center p-6 relative">
-          {visual}
-          <div className="absolute top-3 left-3 text-xs text-text-muted flex items-center gap-1">
-            <Info size={14}/> Cross-section view
-          </div>
+        {visual}
+        <div className="absolute top-3 left-3 text-xs text-text-muted flex items-center gap-1">
+          <Info size={14} /> Cross-section view
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
-      
-      <div className="mb-8 text-center sm:text-left">
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-brand-primary mb-2">Theoretical Base Calculator</h1>
-        <p className="text-text-secondary text-sm sm:text-base max-w-2xl">
-          Estimate the theoretical mass of your steel requirements instantly. Select a profile shape, enter the dimensions in millimeters (unless specified), and get the estimated weight.
-        </p>
+    <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+      <div className="mb-10 sm:mb-12">
+        <div className="inline-flex items-center gap-2 rounded-full border border-brand-primary/15 bg-brand-primary/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-primary shadow-sm">
+          <span className="h-2 w-2 rounded-full bg-brand-primary"></span>
+          Steel Weight Estimator
+        </div>
+
+        <div className="mt-4 max-w-3xl">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
+            Theoretical Base Calculator
+          </h1>
+
+          <p className="mt-3 text-sm sm:text-base lg:text-[17px] leading-7 text-text-secondary max-w-2xl">
+            Estimate the theoretical mass of steel sections with a cleaner, faster workflow. Choose a
+            profile, enter the required dimensions, and get instant weight calculations with unit-aware
+            inputs.
+          </p>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-12 gap-8">
-        
+
         {/* L E F T :  C O N F I G U R A T I O N */}
         <div className="lg:col-span-8 flex flex-col gap-6">
-          
+
           {/* TABS */}
-          <div className="bg-surface border border-border p-2 rounded-2xl flex gap-2 flex-wrap shadow-sm">
+          <div className="bg-surface border border-border p-2 rounded-2xl flex gap-2 flex-wrap shadow-md">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`flex-1 min-w-30 flex flex-col items-center justify-center gap-2 p-3 rounded-xl transition ${
-                  activeTab === tab.id
-                    ? "bg-accent text-white shadow-md"
-                    : "text-text-secondary hover:bg-muted/60 hover:text-text-primary"
-                }`}
+                className={`flex-1 min-w-30 flex flex-col items-center justify-center gap-2 p-3 rounded-xl transition-all duration-200 ${activeTab === tab.id
+                    ? "bg-linear-to-tr from-brand-primary to-[#6b3849] text-white shadow-lg transform -translate-y-0.5"
+                    : "text-text-secondary hover:bg-muted hover:text-text-primary"
+                  }`}
               >
                 {tab.icon}
-                <span className="text-xs font-medium">{tab.label}</span>
+                <span className="text-xs font-semibold tracking-wide">{tab.label}</span>
               </button>
             ))}
           </div>
 
-          <div className="bg-surface rounded-2xl border border-border p-6 shadow-sm">
-             <div className="mb-6 pb-4 border-b border-border flex items-start gap-4">
-                 <div className="p-3 bg-brand-secondary/20 text-brand-primary rounded-xl">
-                    {activeTabData?.icon}
-                 </div>
-                 <div>
-                    <h3 className="text-lg font-medium text-text-primary">{activeTabData?.label} Settings</h3>
-                    <p className="text-sm text-text-muted">{activeTabData?.desc}</p>
-                 </div>
-             </div>
+          <div className="bg-surface rounded-3xl border border-border p-8 shadow-sm">
+            {/* Header */}
+            <div className="mb-6 pb-4 border-b border-border flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-brand-secondary/20 text-brand-primary rounded-xl">
+                  {activeTabData?.icon}
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-text-primary">{activeTabData?.label} Settings</h3>
+                  <p className="text-sm text-text-muted mt-1">{activeTabData?.desc}</p>
+                </div>
+              </div>
 
-             {/* Dynamic Form Segment */}
-             {renderInputs()}
+              <div className="flex items-center gap-1 sm:gap-2 bg-muted/40 p-2 border border-border/60 rounded-xl">
+                <div className="flex flex-col">
+                  <label className="text-[9px] uppercase text-text-muted font-bold px-1">Length Unit</label>
+                  <select value={lenUnit} onChange={(e) => setLenUnit(e.target.value as "m" | "mm" | "cm" | "ft" | "in")} className="bg-transparent text-sm font-medium outline-none p-1">
+                    <option value="m">m</option>
+                    <option value="ft">ft</option>
+                    <option value="cm">cm</option>
+                    <option value="mm">mm</option>
+                    <option value="in">in</option>
+                  </select>
+                </div>
+                <div className="w-px h-8 bg-border"></div>
+                <div className="flex flex-col">
+                  <label className="text-[9px] uppercase text-text-muted font-bold px-1">Cross-Sec Unit</label>
+                  <select value={dimUnit} onChange={(e) => setDimUnit(e.target.value as "mm" | "cm" | "in" | "m")} className="bg-transparent text-sm font-medium outline-none p-1">
+                    <option value="mm">mm</option>
+                    <option value="cm">cm</option>
+                    <option value="in">in</option>
+                    <option value="m">m</option>
+                  </select>
+                </div>
+                <div className="w-px h-8 bg-border"></div>
+                <div className="flex flex-col">
+                  <label className="text-[9px] uppercase text-text-muted font-bold px-1">Weight Unit</label>
+                  <select value={weightUnit} onChange={(e) => setWeightUnit(e.target.value as "kg" | "lbs")} className="bg-transparent text-sm font-medium outline-none p-1">
+                    <option value="kg">kg</option>
+                    <option value="lbs">lbs</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Form Segment */}
+            {renderInputs()}
           </div>
 
         </div>
@@ -458,43 +537,47 @@ export default function SteelCalculator() {
         {/* R I G H T :  R E S U L T S */}
         <div className="lg:col-span-4 flex flex-col gap-6">
           <div className="bg-surface rounded-2xl border border-border p-6 shadow-sm sticky top-24">
-             <h3 className="text-lg font-medium text-text-primary mb-6">Results Summary</h3>
-             
-             {renderVisualizer()}
+            <h3 className="text-lg font-medium text-text-primary mb-6">Results Summary</h3>
 
-             <div className="mt-8 space-y-4">
-                <div className="p-4 bg-muted/40 rounded-xl flex items-center justify-between border border-border/50">
-                  <span className="text-sm font-medium text-text-secondary">Expected Weight (per piece)</span>
-                  <span className="text-lg font-semibold text-text-primary">
-                    {(quantity > 0 ? weight / quantity : 0).toLocaleString("en-US", { maximumFractionDigits: 2 })} <span className="text-sm text-text-muted">kg</span>
+            {renderVisualizer()}
+
+            <div className="mt-8 space-y-4 relative">
+              <div className="p-4 bg-muted/40 rounded-xl flex items-center justify-between border border-border/50">
+                <span className="text-sm font-medium text-text-secondary">Expected Weight (per piece)</span>
+                <span className="text-lg font-bold text-text-primary">
+                  {(quantity > 0 ? finalWeight / quantity : 0).toLocaleString("en-US", { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-text-muted">{getWeightUnit()}</span>
+                </span>
+              </div>
+
+              <div className="p-6 bg-linear-to-br from-brand-primary to-black rounded-2xl flex items-center justify-between text-white shadow-2xl overflow-hidden relative">
+                <div className="absolute right-0 top-0 w-48 h-48 bg-white/5 rounded-full blur-3xl -translate-y-24 translate-x-12 pointer-events-none"></div>
+                <div className="absolute left-0 bottom-0 w-32 h-32 bg-brand-secondary/20 rounded-full blur-2xl translate-y-16 -translate-x-16 pointer-events-none"></div>
+
+                <div className="relative z-10">
+                  <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-2">Total Estimated Weight</p>
+                  <p className="text-4xl font-serif">
+                    {finalWeight.toLocaleString("en-US", { maximumFractionDigits: 1 })}
+                    <span className="text-xl font-sans text-brand-secondary ml-2 font-medium">{getWeightUnit()}</span>
+                  </p>
+                </div>
+              </div>
+
+              {finalWeight > 1000 && (
+                <div className="flex items-center justify-between px-3 pt-3">
+                  <span className="text-sm text-text-muted font-medium">Equivalency:</span>
+                  <span className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-full tracking-wide">
+                    {largeWeightVal.toLocaleString("en-US", { maximumFractionDigits: 3 })} {getLargeWeightUnit()}
                   </span>
                 </div>
+              )}
+            </div>
 
-                <div className="p-5 bg-brand-primary rounded-xl flex items-center justify-between text-white shadow-lg overflow-hidden relative">
-                  <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-12 translate-x-12 pointer-events-none"></div>
-                  <div>
-                    <p className="text-white/80 text-xs font-medium uppercase tracking-wider mb-1">Total Estimated Weight</p>
-                    <p className="text-3xl font-serif">
-                      {weight.toLocaleString("en-US", { maximumFractionDigits: 1 })}
-                      <span className="text-lg font-sans text-white/70 ml-1">kg</span>
-                    </p>
-                  </div>
-                </div>
-
-                {weight > 1000 && (
-                  <div className="flex items-center justify-between px-2 pt-2">
-                     <span className="text-sm text-text-muted">Equivalent in Tons:</span>
-                     <span className="text-sm font-semibold text-brand-primary">{(weight / 1000).toLocaleString("en-US", { maximumFractionDigits: 3 })} MT</span>
-                  </div>
-                )}
-             </div>
-
-             <div className="mt-6 pt-6 border-t border-border flex items-start gap-2">
-                <Info size={16} className="text-text-muted shrink-0 mt-0.5" />
-                <p className="text-xs text-text-muted leading-relaxed flex-1">
-                  Theoretical masses are derived using the standard density of steel (7.85 g/cm³). Actual weights may fluctuate slightly due to manufacturing tolerances and specific alloy compositions.
-                </p>
-             </div>
+            <div className="mt-6 pt-6 border-t border-border flex items-start gap-2">
+              <Info size={16} className="text-text-muted shrink-0 mt-0.5" />
+              <p className="text-xs text-text-muted leading-relaxed flex-1">
+                Theoretical masses are derived using the standard density of steel (7.85 g/cm³). Actual weights may fluctuate slightly due to manufacturing tolerances and specific alloy compositions.
+              </p>
+            </div>
           </div>
         </div>
       </div>
