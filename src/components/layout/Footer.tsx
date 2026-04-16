@@ -51,6 +51,14 @@ export default function Footer() {
                 Contact
               </Link>
             </li>
+            <li>
+              <Link
+                href="/calculator"
+                className="inline-block text-text-secondary hover:text-text-primary"
+              >
+                Calculator
+              </Link>
+            </li>
           </ul>
         </div>
 
