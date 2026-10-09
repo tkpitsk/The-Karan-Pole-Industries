@@ -1,79 +1,51 @@
-"use client";
+import Link from 'next/link';
+import CategoryCard from "@/components/products/CategoryCard";
+import { fetchCategories } from "@/utils/api";
+import { ArrowRight } from "lucide-react";
 
-import { useEffect, useState } from "react";
-import ProductCard from "@/components/products/ProductCard";
-
-type Product = {
-  _id: string;
-  name: string;
-  category: string;
-  subCategory: string;
-  unit: string;
-  baseMaterial: string;
-  weightPerUnit: number;
-  visibleToCustomer: boolean;
-  isActive: boolean;
-};
-
-export default function ProductsSection() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/products/public`
-        );
-        const data = await res.json();
-
-        const visibleProducts = data.filter(
-          (p: Product) => p.isActive && p.visibleToCustomer
-        );
-
-        setProducts(visibleProducts);
-      } catch {
-        console.error("Failed to fetch products");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
+export default async function ProductsSection() {
+  const categories = await fetchCategories();
 
   return (
     <section id="products" className="py-20 md:py-28 bg-background">
       <div className="mx-auto container px-4">
-
         {/* Header */}
-        <div className="max-w-2xl">
-          <span className="inline-block mb-4 rounded-full bg-highlight px-4 py-1 text-sm font-medium text-highlight-foreground">
-            Products
-          </span>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16">
+          <div className="max-w-2xl">
+            <span className="inline-block mb-4 rounded-full bg-highlight px-4 py-1 text-sm font-medium text-highlight-foreground">
+              Products
+            </span>
 
-          <h2 className="text-3xl md:text-4xl font-serif font-semibold text-text-primary">
-            Our Product Range
-          </h2>
+            <h2 className="text-3xl md:text-4xl font-serif font-semibold text-text-primary">
+              Our Product Categories
+            </h2>
 
-          <p className="mt-6 text-base md:text-lg text-text-secondary">
-            We manufacture and supply a range of infrastructure and electrical
-            products designed for strength, durability, and long-term use.
-          </p>
+            <p className="mt-6 text-base md:text-lg text-text-secondary">
+              We manufacture and supply a comprehensive range of industrial steel and construction materials designed for strength, durability, and performance.
+            </p>
+          </div>
+          
+          <div className="mt-6 md:mt-0">
+            <Link 
+              href="/products" 
+              className="inline-flex items-center font-medium text-brand-primary hover:text-brand-primary/80 transition-colors"
+            >
+              View Full Catalog <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </div>
         </div>
 
         {/* Grid */}
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-48 rounded-3xl border border-border bg-muted animate-pulse"
-                />
-              ))
-            : products.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {categories && categories.length > 0 ? (
+            categories.slice(0, 8).map((category: any) => (
+              <CategoryCard key={category._id} category={category} />
+            ))
+          ) : (
+            <div className="col-span-full py-12 text-center text-neutral-500">
+              Loading categories or no categories found.
+            </div>
+          )}
         </div>
       </div>
     </section>

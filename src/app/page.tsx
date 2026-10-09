@@ -9,11 +9,9 @@ export default function HomePage() {
     <main className="bg-muted">
       <HeroSection />
       <AboutSection />
-      {/* <ProductsSection /> */}
+      <ProductsSection />
       <WhyKPISection />
       <LocationSection />
-      {/* ProductsSection */}
-      {/* WhyKPISection */}
       {/* CTASection */}
     </main>
   );

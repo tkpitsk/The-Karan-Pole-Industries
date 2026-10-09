@@ -29,7 +29,7 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             <li>
               <Link
-                href="#about"
+                href="/#about"
                 className="inline-block text-text-secondary hover:text-text-primary"
               >
                 About Us
@@ -37,7 +37,7 @@ export default function Footer() {
             </li>
             <li>
               <Link
-                href="#why-kpi"
+                href="/#why-kpi"
                 className="inline-block text-text-secondary hover:text-text-primary"
               >
                 Why KPI
@@ -45,7 +45,7 @@ export default function Footer() {
             </li>
             <li>
               <Link
-                href="#contact"
+                href="/contact"
                 className="inline-block text-text-secondary hover:text-text-primary"
               >
                 Contact

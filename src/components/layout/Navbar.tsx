@@ -39,13 +39,13 @@ export default function FloatingNavbar() {
 
             {/* Links (Desktop & Tablet) */}
             <div className="hidden md:flex items-center gap-6 whitespace-nowrap">
-              <Link href="#about" className="text-sm text-text-secondary hover:text-text-primary transition">
+              <Link href="/#about" className="text-sm text-text-secondary hover:text-text-primary transition">
                 About
               </Link>
-              <Link href="#products" className="text-sm text-text-secondary hover:text-text-primary transition">
+              <Link href="/products" className="text-sm text-text-secondary hover:text-text-primary transition">
                 Products
               </Link>
-              <Link href="#why-kpi" className="text-sm text-text-secondary hover:text-text-primary transition">
+              <Link href="/#why-kpi" className="text-sm text-text-secondary hover:text-text-primary transition">
                 Why KPI
               </Link>
             </div>
@@ -53,7 +53,7 @@ export default function FloatingNavbar() {
             {/* CTAs (Desktop & Tablet) */}
             <div className="hidden md:flex items-center gap-3 shrink-0 whitespace-nowrap">
               <Link
-                href="#quote"
+                href="/#quote"
                 className="rounded-full border border-border px-4 py-2 text-sm font-medium text-text-primary hover:bg-muted transition"
               >
                 Get Quote
@@ -85,9 +85,9 @@ export default function FloatingNavbar() {
             <div className="w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-background/90 backdrop-blur-xl shadow-xl">
               <div className="divide-y divide-border">
                 {[
-                  { label: "About", href: "#about" },
-                  { label: "Products", href: "#products" },
-                  { label: "Why KPI", href: "#why-kpi" },
+                  { label: "About", href: "/#about" },
+                  { label: "Products", href: "/products" },
+                  { label: "Why KPI", href: "/#why-kpi" },
                 ].map((item) => (
                   <Link
                     key={item.label}
@@ -102,14 +102,14 @@ export default function FloatingNavbar() {
 
               <div className="p-4 flex flex-col gap-3 bg-muted/50">
                 <Link
-                  href="#quote"
+                  href="/#quote"
                   onClick={() => setMenuOpen(false)}
                   className="rounded-full border border-border px-4 py-2 text-sm font-medium text-center hover:bg-background transition"
                 >
                   Get Quote
                 </Link>
                 <Link
-                  href="#contact"
+                  href="/contact"
                   onClick={() => setMenuOpen(false)}
                   className="rounded-full bg-brand-primary px-4 py-2 text-sm font-medium text-white text-center hover:opacity-90 transition"
                 >

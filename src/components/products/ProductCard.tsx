@@ -1,49 +1,59 @@
-import Link from "next/link";
+import Link from 'next/link';
+import { ArrowRight, Settings2 } from 'lucide-react';
 
-type Product = {
-  _id: string;
-  name: string;
-  subCategory: string;
-  unit: string;
-  baseMaterial: string;
-  weightPerUnit: number;
-};
+interface ProductCardProps {
+  categorySlug: string;
+  product: {
+    _id: string;
+    name: string;
+    slug: string;
+    shortDescription?: string;
+    galleryImages?: { url: string }[];
+    status: string;
+  };
+}
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ categorySlug, product }: ProductCardProps) {
+  const imageUrl = product.galleryImages && product.galleryImages.length > 0 
+    ? product.galleryImages[0].url 
+    : null;
+
   return (
-    <div className="group rounded-3xl border border-border bg-surface p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+    <Link 
+      href={`/products/${categorySlug}/${product.slug}`}
+      className="group flex flex-col overflow-hidden rounded-2xl bg-white border border-neutral-200 transition-all duration-300 hover:shadow-xl hover:border-brand-primary h-full"
+    >
+      <div className="relative aspect-video w-full bg-neutral-100 overflow-hidden flex items-center justify-center">
+        {imageUrl ? (
+          <img 
+            src={imageUrl} 
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <Settings2 className="h-12 w-12 text-neutral-300 transition-transform duration-500 group-hover:scale-110 group-hover:text-brand-primary/50" />
+        )}
+        <div className="absolute inset-0 bg-brand-primary/0 transition-colors duration-300 group-hover:bg-brand-primary/10" />
+      </div>
       
-      <p className="text-xs uppercase tracking-wide text-text-muted">
-        {product.subCategory}
-      </p>
-
-      <h3 className="mt-2 text-lg font-semibold text-text-primary">
-        {product.name}
-      </h3>
-
-      <div className="mt-4 space-y-2 text-sm text-text-secondary">
-        <p>
-          <span className="font-medium">Unit:</span> {product.unit}
-        </p>
-
-        <p>
-          <span className="font-medium">Material:</span> {product.baseMaterial}
-        </p>
-
-        {product.weightPerUnit > 0 && (
-          <p>
-            <span className="font-medium">Weight:</span>{" "}
-            {product.weightPerUnit} per unit
+      <div className="p-6 flex flex-col flex-grow">
+        <h3 className="mb-2 font-serif text-lg font-bold text-neutral-900 line-clamp-2 group-hover:text-brand-primary transition-colors">
+          {product.name}
+        </h3>
+        
+        {product.shortDescription && (
+          <p className="text-sm text-neutral-600 line-clamp-2 mb-4 flex-grow">
+            {product.shortDescription}
           </p>
         )}
+        
+        <div className="mt-auto flex items-center justify-between pt-4 border-t border-neutral-100">
+          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            View Details
+          </span>
+          <ArrowRight className="h-4 w-4 text-brand-primary transition-transform duration-300 group-hover:translate-x-1" />
+        </div>
       </div>
-
-      <Link
-        href={`/contact?product=${encodeURIComponent(product.name)}`}
-        className="mt-6 inline-flex items-center justify-center w-full rounded-full border border-border px-4 py-2 text-sm font-medium text-text-primary hover:bg-muted transition"
-      >
-        Get Quote
-      </Link>
-    </div>
+    </Link>
   );
 }
